@@ -1,6 +1,7 @@
 const express = require('express')
 const Note = require('../models/note.js')
 const User = require('../models/user.js')
+const jwt = require('jsonwebtoken')
 
 // Router para manejar las rutas de notas
 const notesRouter = express.Router()
@@ -11,6 +12,7 @@ notesRouter.get('/', async (req, res) => {
     username: 1,
     name: 1
   })
+
   res.json(notes)
 })
 
@@ -30,12 +32,24 @@ notesRouter.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /api/notes - Crear una nueva nota (por ahora sin asociación de usuario)
+const getTokenFrom = (req) => {
+  const authorization = req.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
+
+// POST /api/notes - Crear una nueva nota
 notesRouter.post('/', async (req, res, next) => {
-  const { userId, content, important = false } = req.body
+  const { content, important = false } = req.body
 
-  const user = await User.findById(userId)
+  const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+  if (!decodedToken.id) {
+    return res.status(401).json({ error: 'token invalid' })
+  }
 
+  const user = await User.findById(decodedToken.id)
   const note = new Note({
     content,
     important,

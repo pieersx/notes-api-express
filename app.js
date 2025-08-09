@@ -2,8 +2,13 @@ const cors = require('cors')
 const express = require('express')
 const notesRouter = require('./controllers/notes')
 const usersRouter = require('./controllers/users')
+const loginRouter = require('./controllers/login')
 const { connectToMongoDB } = require('./config/database')
-const { requestLogger, unknownEndpoint, errorHandler } = require('./middleware/errorMiddleware')
+const {
+  requestLogger,
+  unknownEndpoint,
+  errorHandler
+} = require('./middleware/errorMiddleware')
 
 connectToMongoDB()
 
@@ -22,6 +27,7 @@ app.get('/', (req, res) => {
 // Rutas de la API
 app.use('/api/notes', notesRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
 
 // Middleware para manejar rutas no encontradas y errores
 app.use(unknownEndpoint)
